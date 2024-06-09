@@ -9,18 +9,33 @@ const React = require('react');
 const ReactDOMServer = require('react-dom/server');
 const { StaticRouter } = require('react-router-dom/server');
 const App = require('../src/App').default;
+const api = require("./api");
 
 const app = express();
 
 app.use(express.static('public'));
 
+app.use("/api", api);
+
+app.use('/favicon.ico', express.static(path.join(__dirname, 'public', 'favicon.ico')));
+
+
 app.get('*', (req, res) => {
   const context = {};
+  // Handle root URL redirect
+  if (req.url === '/') {
+    res.redirect('/home');
+    return;
+  }
+
   const appMarkup = ReactDOMServer.renderToString(
-    React.createElement(StaticRouter, { location: req.url, context }, React.createElement(App))
+    <StaticRouter location={req.url} context={context}>
+      <App />
+    </StaticRouter>
   );
 
-  const indexFile = path.resolve('./public/index.html');
+
+  const indexFile = path.resolve('./src/index.html');
   fs.readFile(indexFile, 'utf8', (err, data) => {
     if (err) {
       console.error('Something went wrong:', err);
